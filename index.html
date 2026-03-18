@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinity AI - Mission Control</title>
+    <style>
+        body {
+            background-color: #050a14;
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .ai-frame {
+            width: 95%;
+            max-width: 450px;
+            background: linear-gradient(145deg, #0a192f, #020617);
+            border: 2px solid #00d4ff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
+            text-align: center;
+        }
+        h2 { text-transform: uppercase; letter-spacing: 3px; font-size: 1.2rem; }
+        .input-box {
+            width: 100%;
+            background: #112240;
+            border: 1px solid #233554;
+            padding: 12px;
+            color: #fff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .btn-execute {
+            width: 100%;
+            background: #00d4ff;
+            color: #050a14;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-execute:hover { background: #008cb3; box-shadow: 0 0 15px #00d4ff; }
+        #response-screen {
+            background: #020c1b;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 100px;
+            text-align: left;
+            font-size: 14px;
+            color: #ccd6f6;
+            border: 1px solid #233554;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        .loading-text { font-size: 12px; color: #8892b0; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="ai-frame">
+    <h2>Trinity AI Console</h2>
+    <div class="loading-text" id="status">STATUS: ONLINE // ENCRYPTED</div>
+    
+    <input type="text" id="userInput" class="input-box" placeholder="Ask Trinity anything...">
+    <button class="btn-execute" onclick="startAI()">SEND COMMAND</button>
+
+    <div id="response-screen">Awaiting system input...</div>
+</div>
+
+<script>
+    // AAPKI NAYI API KEY AUR TRINITY MODEL
+    const KEY = "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";
+    const URL = "https://openrouter.ai/api/v1/chat/completions";
+
+    async function startAI() {
+        const input = document.getElementById("userInput").value;
+        const screen = document.getElementById("response-screen");
+        const status = document.getElementById("status");
+
+        if (!input) {
+            screen.innerText = "> Error: No command detected.";
+            return;
+        }
+
+        screen.innerText = "> Initializing Trinity Data Sync...";
+        status.innerText = "STATUS: SEARCHING_MODELS...";
+
+        try {
+            const response = await fetch(URL, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    // Screenshot wala Trinity model yahan use kiya hai
+                    "model": "arcee-ai/trinity-large-preview:free", 
+                    "messages": [
+                        {"role": "user", "content": input}
+                    ]
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                screen.innerText = "> " + data.choices[0].message.content;
+                status.innerText = "STATUS: DATA_RECEIVED_SUCCESSFULLY";
+            } else {
+                throw new Error(data.error?.message || "Unauthorized (401)");
+            }
+
+        } catch (err) {
+            screen.innerText = "> FATAL_ERROR: " + err.message;
+            status.innerText = "STATUS: AUTH_FAILED_401";
+            console.error(err);
+        }
+    }
+</script>
+
+</body>
+</html>
